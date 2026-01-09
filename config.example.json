@@ -1,0 +1,26 @@
+{
+  "twitch": {
+    "clientId": "your_twitch_client_id",
+    "clientSecret": "your_twitch_client_secret"
+  },
+  "polling": {
+    "intervalSeconds": 30
+  },
+  "streamers": [
+    {
+      "username": "streamer_name",
+      "notifications": {
+        "online": true,
+        "offline": true,
+        "titleChange": true,
+        "gameChange": true
+      },
+      "webhooks": [
+        "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token"
+      ]
+    }
+  ],
+  "log": {
+    "level": "info"
+  }
+}
