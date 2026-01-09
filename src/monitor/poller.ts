@@ -95,7 +95,10 @@ export class Poller {
         newGame: gameChange.newValue,
         currentState: titleChange.currentState,
       };
-      return [...changes.filter((c) => c.type !== "titleChange" && c.type !== "gameChange"), combined];
+      return [
+        ...changes.filter((c) => c.type !== "titleChange" && c.type !== "gameChange"),
+        combined,
+      ];
     }
 
     return changes;
@@ -180,7 +183,9 @@ export class Poller {
 
         const filteredChanges = changes.filter((c) => {
           if (c.type === "titleAndGameChange") {
-            return streamerConfig.notifications.titleChange || streamerConfig.notifications.gameChange;
+            return (
+              streamerConfig.notifications.titleChange || streamerConfig.notifications.gameChange
+            );
           }
           return streamerConfig.notifications[c.type];
         });

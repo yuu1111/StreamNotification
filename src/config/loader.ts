@@ -23,7 +23,9 @@ export async function loadConfig(): Promise<Config> {
   const result = ConfigSchema.safeParse(json);
 
   if (!result.success) {
-    const errors = result.error.issues.map((i) => `  - ${i.path.join(".")}: ${i.message}`).join("\n");
+    const errors = result.error.issues
+      .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
+      .join("\n");
     throw new Error(`設定ファイルのバリデーションエラー:\n${errors}`);
   }
 

@@ -147,7 +147,10 @@ export function buildEmbed(change: DetectedChange): DiscordEmbed {
     }
 
     case "offline": {
-      const endTime = new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+      const endTime = new Date().toLocaleTimeString("ja-JP", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
       const fields: { name: string; value: string; inline?: boolean }[] = [];
 
       if (change.streamStartedAt) {

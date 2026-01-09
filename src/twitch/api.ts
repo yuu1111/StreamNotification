@@ -1,6 +1,12 @@
 import { logger } from "../utils/logger";
 import type { TwitchAuth } from "./auth";
-import type { TwitchApiResponse, TwitchChannel, TwitchStream, TwitchUser, TwitchVideo } from "./types";
+import type {
+  TwitchApiResponse,
+  TwitchChannel,
+  TwitchStream,
+  TwitchUser,
+  TwitchVideo,
+} from "./types";
 
 /**
  * @description Twitch Helix APIクライアント
