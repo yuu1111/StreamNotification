@@ -1,13 +1,24 @@
 import * as readline from "node:readline";
 import type { Config, StreamerConfig } from "./config/schema";
 
+/**
+ * @description 設定ファイルのパス
+ */
 const CONFIG_PATH = "./config.json";
 
+/**
+ * @description 標準入出力のreadlineインターフェース
+ */
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
 
+/**
+ * @description 設定ファイルを読み込む
+ * @returns 設定オブジェクト
+ * @throws 設定ファイルが存在しない場合
+ */
 async function loadConfig(): Promise<Config> {
   const file = Bun.file(CONFIG_PATH);
   if (!(await file.exists())) {
@@ -16,10 +27,17 @@ async function loadConfig(): Promise<Config> {
   return file.json();
 }
 
+/**
+ * @description 設定ファイルに書き込む
+ * @param config - 保存する設定オブジェクト
+ */
 async function saveConfig(config: Config): Promise<void> {
   await Bun.write(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 
+/**
+ * @description CLIの使い方を表示
+ */
 function printUsage(): void {
   console.log(`
 使い方:
@@ -31,6 +49,11 @@ function printUsage(): void {
 `);
 }
 
+/**
+ * @description ユーザー入力を取得
+ * @param message - 表示するプロンプト
+ * @returns 入力された文字列
+ */
 function promptInput(message: string): Promise<string> {
   return new Promise((resolve) => {
     rl.question(message, (answer: string) => {
@@ -39,15 +62,24 @@ function promptInput(message: string): Promise<string> {
   });
 }
 
+/**
+ * @description Webhook URLの形式を検証
+ * @param url - 検証するURL
+ * @returns 有効なDiscord Webhook URLの場合true
+ */
 function validateWebhookUrl(url: string): boolean {
   return url.startsWith("https://discord.com/api/webhooks/");
 }
 
+/**
+ * @description 配信者を追加
+ * @param username - Twitchユーザー名
+ */
 async function addStreamer(username: string): Promise<void> {
   const config = await loadConfig();
 
   const existing = config.streamers.find(
-    (s) => s.username.toLowerCase() === username.toLowerCase()
+    (s: StreamerConfig) => s.username.toLowerCase() === username.toLowerCase()
   );
   if (existing) {
     console.error(`エラー: ${username} は既に登録されています`);
@@ -76,11 +108,15 @@ async function addStreamer(username: string): Promise<void> {
   console.log(`${username} を追加しました`);
 }
 
+/**
+ * @description 配信者を削除
+ * @param username - Twitchユーザー名
+ */
 async function removeStreamer(username: string): Promise<void> {
   const config = await loadConfig();
 
   const index = config.streamers.findIndex(
-    (s) => s.username.toLowerCase() === username.toLowerCase()
+    (s: StreamerConfig) => s.username.toLowerCase() === username.toLowerCase()
   );
   if (index === -1) {
     console.error(`エラー: ${username} は登録されていません`);
@@ -92,6 +128,9 @@ async function removeStreamer(username: string): Promise<void> {
   console.log(`${username} を削除しました`);
 }
 
+/**
+ * @description 登録済み配信者一覧を表示
+ */
 async function listStreamers(): Promise<void> {
   const config = await loadConfig();
 
@@ -106,11 +145,15 @@ async function listStreamers(): Promise<void> {
   }
 }
 
+/**
+ * @description 配信者にWebhookを追加
+ * @param username - Twitchユーザー名
+ */
 async function addWebhook(username: string): Promise<void> {
   const config = await loadConfig();
 
   const streamer = config.streamers.find(
-    (s) => s.username.toLowerCase() === username.toLowerCase()
+    (s: StreamerConfig) => s.username.toLowerCase() === username.toLowerCase()
   );
   if (!streamer) {
     console.error(`エラー: ${username} は登録されていません`);
@@ -133,11 +176,15 @@ async function addWebhook(username: string): Promise<void> {
   console.log(`${username} にWebhookを追加しました (合計: ${streamer.webhooks.length}件)`);
 }
 
+/**
+ * @description 配信者からWebhookを削除
+ * @param username - Twitchユーザー名
+ */
 async function removeWebhook(username: string): Promise<void> {
   const config = await loadConfig();
 
   const streamer = config.streamers.find(
-    (s) => s.username.toLowerCase() === username.toLowerCase()
+    (s: StreamerConfig) => s.username.toLowerCase() === username.toLowerCase()
   );
   if (!streamer) {
     console.error(`エラー: ${username} は登録されていません`);
@@ -167,6 +214,9 @@ async function removeWebhook(username: string): Promise<void> {
   console.log(`Webhookを削除しました (残り: ${streamer.webhooks.length}件)`);
 }
 
+/**
+ * @description 対話モードでCLIを実行
+ */
 async function interactiveMode(): Promise<void> {
   console.log("Stream Notifier CLI\n");
   console.log("1. 配信者を追加");
@@ -227,6 +277,9 @@ async function interactiveMode(): Promise<void> {
   }
 }
 
+/**
+ * @description CLIのエントリーポイント
+ */
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 

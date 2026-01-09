@@ -5,17 +5,40 @@ import { logger } from "../utils/logger";
 import { type DetectedChange, detectChanges } from "./detector";
 import { StateManager, type StreamerState } from "./state";
 
+/**
+ * @description 配信者の状態を定期的にポーリングし変更を検出するクラス
+ */
 export class Poller {
+  /**
+   * @description ポーリングインターバルのタイマーID
+   */
   private intervalId: Timer | null = null;
+
+  /**
+   * @description 配信者の状態を管理するインスタンス
+   */
   private stateManager = new StateManager();
+
+  /**
+   * @description ユーザー情報のキャッシュ
+   */
   private userCache = new Map<string, TwitchUser>();
 
+  /**
+   * @description Pollerインスタンスを作成
+   * @param api - Twitch APIクライアント
+   * @param config - アプリケーション設定
+   * @param onChanges - 変更検出時のコールバック
+   */
   constructor(
     private api: TwitchAPI,
     private config: Config,
     private onChanges: (changes: DetectedChange[], streamerConfig: StreamerConfig) => Promise<void>
   ) {}
 
+  /**
+   * @description ポーリングを開始
+   */
   async start(): Promise<void> {
     await this.initializeUserCache();
     await this.poll();
@@ -27,6 +50,9 @@ export class Poller {
     );
   }
 
+  /**
+   * @description ポーリングを停止
+   */
   stop(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
@@ -35,6 +61,9 @@ export class Poller {
     }
   }
 
+  /**
+   * @description ユーザー情報をキャッシュに読み込む
+   */
   private async initializeUserCache(): Promise<void> {
     const usernames = this.config.streamers.map((s) => s.username);
     this.userCache = await this.api.getUsers(usernames);
@@ -47,6 +76,11 @@ export class Poller {
     }
   }
 
+  /**
+   * @description タイトル変更とゲーム変更を同時検出した場合に統合
+   * @param changes - 検出された変更の配列
+   * @returns 統合後の変更配列
+   */
   private combineChanges(changes: DetectedChange[]): DetectedChange[] {
     const titleChange = changes.find((c) => c.type === "titleChange");
     const gameChange = changes.find((c) => c.type === "gameChange");
@@ -67,6 +101,9 @@ export class Poller {
     return changes;
   }
 
+  /**
+   * @description 全配信者の状態をポーリングして変更を検出
+   */
   private async poll(): Promise<void> {
     try {
       const usernames = this.config.streamers.map((s) => s.username);
@@ -80,6 +117,7 @@ export class Poller {
         }
       }
 
+      // オフラインの配信者はチャンネル情報からタイトル/ゲームを取得
       const channels =
         offlineUserIds.length > 0 ? await this.api.getChannels(offlineUserIds) : new Map();
 
@@ -117,6 +155,7 @@ export class Poller {
 
         let changes = detectChanges(oldState, newState);
 
+        // 起動時に既に配信中の場合もonline通知を送る
         if (isInitialPoll && newState.isLive) {
           changes.push({
             type: "online",

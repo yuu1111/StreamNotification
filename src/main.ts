@@ -6,6 +6,9 @@ import { TwitchAPI } from "./twitch/api";
 import { TwitchAuth } from "./twitch/auth";
 import { logger } from "./utils/logger";
 
+/**
+ * @description アプリケーションのエントリーポイント
+ */
 async function main() {
   logger.info("Stream Notifier 起動中...");
 

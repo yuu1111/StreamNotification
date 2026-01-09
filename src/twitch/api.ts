@@ -2,14 +2,32 @@ import { logger } from "../utils/logger";
 import type { TwitchAuth } from "./auth";
 import type { TwitchApiResponse, TwitchChannel, TwitchStream, TwitchUser, TwitchVideo } from "./types";
 
+/**
+ * @description Twitch Helix APIクライアント
+ */
 export class TwitchAPI {
+  /**
+   * @description Twitch Helix APIのベースURL
+   */
   private readonly baseUrl = "https://api.twitch.tv/helix";
 
+  /**
+   * @description TwitchAPIインスタンスを作成
+   * @param auth - 認証インスタンス
+   * @param clientId - Twitch Client ID
+   */
   constructor(
     private auth: TwitchAuth,
     private clientId: string
   ) {}
 
+  /**
+   * @description APIリクエストを実行
+   * @param endpoint - APIエンドポイント
+   * @param params - クエリパラメータ
+   * @returns レスポンスデータの配列
+   * @throws APIエラー時
+   */
   private async request<T>(endpoint: string, params: URLSearchParams): Promise<T[]> {
     const token = await this.auth.getToken();
     const url = `${this.baseUrl}${endpoint}?${params}`;
@@ -30,6 +48,11 @@ export class TwitchAPI {
     return data.data;
   }
 
+  /**
+   * @description ユーザー情報を取得
+   * @param logins - ユーザーログイン名の配列
+   * @returns ログイン名をキーとするユーザー情報Map
+   */
   async getUsers(logins: string[]): Promise<Map<string, TwitchUser>> {
     if (logins.length === 0) return new Map();
 
@@ -49,6 +72,11 @@ export class TwitchAPI {
     return result;
   }
 
+  /**
+   * @description 配信中のストリーム情報を取得
+   * @param userLogins - ユーザーログイン名の配列
+   * @returns ログイン名をキーとする配信情報Map(配信中のみ含む)
+   */
   async getStreams(userLogins: string[]): Promise<Map<string, TwitchStream>> {
     if (userLogins.length === 0) return new Map();
 
@@ -68,6 +96,11 @@ export class TwitchAPI {
     return result;
   }
 
+  /**
+   * @description チャンネル情報を取得
+   * @param broadcasterIds - 配信者IDの配列
+   * @returns ログイン名をキーとするチャンネル情報Map
+   */
   async getChannels(broadcasterIds: string[]): Promise<Map<string, TwitchChannel>> {
     if (broadcasterIds.length === 0) return new Map();
 
@@ -87,6 +120,11 @@ export class TwitchAPI {
     return result;
   }
 
+  /**
+   * @description 最新のアーカイブVODを取得
+   * @param userId - ユーザーID
+   * @returns VOD情報(存在しない場合null)
+   */
   async getLatestVod(userId: string): Promise<TwitchVideo | null> {
     const params = new URLSearchParams();
     params.append("user_id", userId);

@@ -1,6 +1,19 @@
 import type { ChangeType } from "../config/schema";
 import type { DetectedChange } from "../monitor/detector";
 
+/**
+ * @description Discord Embed構造
+ * @property title - Embedのタイトル
+ * @property description - 説明文 @optional
+ * @property url - タイトルのリンク先 @optional
+ * @property color - サイドバーの色(10進数)
+ * @property thumbnail - サムネイル画像 @optional
+ * @property image - メイン画像 @optional
+ * @property fields - フィールド配列 @optional
+ * @property timestamp - ISO 8601形式のタイムスタンプ @optional
+ * @property footer - フッター @optional
+ * @property author - 作成者情報 @optional
+ */
 export interface DiscordEmbed {
   title: string;
   description?: string;
@@ -14,6 +27,9 @@ export interface DiscordEmbed {
   author?: { name: string; icon_url?: string };
 }
 
+/**
+ * @description 変更種別ごとのEmbed色(10進数)
+ */
 const COLORS: Record<ChangeType, number> = {
   online: 0x9146ff,
   offline: 0x808080,
@@ -22,6 +38,9 @@ const COLORS: Record<ChangeType, number> = {
   titleAndGameChange: 0x00ccff,
 };
 
+/**
+ * @description 変更種別ごとのEmbedタイトル
+ */
 const TITLES: Record<ChangeType, string> = {
   online: "配信開始",
   offline: "配信終了",
@@ -30,6 +49,11 @@ const TITLES: Record<ChangeType, string> = {
   titleAndGameChange: "タイトル・ゲーム変更",
 };
 
+/**
+ * @description 配信開始からの経過時間を日本語でフォーマット
+ * @param startedAt - 配信開始日時(ISO 8601)
+ * @returns フォーマット済み文字列(無効な場合null)
+ */
 function formatElapsedTime(startedAt: string | null): string | null {
   if (!startedAt) return null;
 
@@ -49,6 +73,11 @@ function formatElapsedTime(startedAt: string | null): string | null {
   return `${hours}時間${mins}分前から配信中`;
 }
 
+/**
+ * @description 配信時間を日本語でフォーマット
+ * @param startedAt - 配信開始日時(ISO 8601)
+ * @returns フォーマット済み文字列
+ */
 function formatDuration(startedAt: string): string {
   const start = new Date(startedAt).getTime();
   const now = Date.now();
@@ -62,6 +91,11 @@ function formatDuration(startedAt: string): string {
   return `${hours}時間${mins}分`;
 }
 
+/**
+ * @description 変更情報からDiscord Embedを構築
+ * @param change - 検出された変更
+ * @returns Discord Embed
+ */
 export function buildEmbed(change: DetectedChange): DiscordEmbed {
   const { type, currentState } = change;
   const channelUrl = `https://twitch.tv/${currentState.username}`;
@@ -114,17 +148,21 @@ export function buildEmbed(change: DetectedChange): DiscordEmbed {
 
     case "offline": {
       const endTime = new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
-
-      const fields: { name: string; value: string; inline?: boolean }[] = [
-        { name: "終了時刻", value: endTime, inline: true },
-      ];
+      const fields: { name: string; value: string; inline?: boolean }[] = [];
 
       if (change.streamStartedAt) {
+        const startTime = new Date(change.streamStartedAt).toLocaleTimeString("ja-JP", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        const duration = formatDuration(change.streamStartedAt);
         fields.push({
           name: "配信時間",
-          value: formatDuration(change.streamStartedAt),
-          inline: true,
+          value: `${startTime} → ${endTime} (${duration})`,
+          inline: false,
         });
+      } else {
+        fields.push({ name: "終了時刻", value: endTime, inline: true });
       }
 
       if (change.vodUrl) {
