@@ -27,4 +27,4 @@ export interface NotificationSettings {
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
-export type ChangeType = keyof NotificationSettings;
+export type ChangeType = keyof NotificationSettings | "titleAndGameChange";

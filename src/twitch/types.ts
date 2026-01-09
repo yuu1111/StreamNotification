@@ -33,6 +33,17 @@ export interface TwitchChannel {
   title: string;
 }
 
+export interface TwitchVideo {
+  id: string;
+  user_id: string;
+  user_login: string;
+  title: string;
+  url: string;
+  created_at: string;
+  duration: string;
+  thumbnail_url: string;
+}
+
 export interface TwitchApiResponse<T> {
   data: T[];
 }

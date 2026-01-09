@@ -1,6 +1,6 @@
 import { logger } from "../utils/logger";
 import type { TwitchAuth } from "./auth";
-import type { TwitchApiResponse, TwitchChannel, TwitchStream, TwitchUser } from "./types";
+import type { TwitchApiResponse, TwitchChannel, TwitchStream, TwitchUser, TwitchVideo } from "./types";
 
 export class TwitchAPI {
   private readonly baseUrl = "https://api.twitch.tv/helix";
@@ -85,5 +85,15 @@ export class TwitchAPI {
 
     logger.debug(`チャンネル情報取得: ${channels.length}件`);
     return result;
+  }
+
+  async getLatestVod(userId: string): Promise<TwitchVideo | null> {
+    const params = new URLSearchParams();
+    params.append("user_id", userId);
+    params.append("type", "archive");
+    params.append("first", "1");
+
+    const videos = await this.request<TwitchVideo>("/videos", params);
+    return videos[0] ?? null;
   }
 }

@@ -1,0 +1,290 @@
+import * as readline from "node:readline";
+import type { Config, StreamerConfig } from "./config/schema";
+
+const CONFIG_PATH = "./config.json";
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+async function loadConfig(): Promise<Config> {
+  const file = Bun.file(CONFIG_PATH);
+  if (!(await file.exists())) {
+    throw new Error("config.json が見つかりません");
+  }
+  return file.json();
+}
+
+async function saveConfig(config: Config): Promise<void> {
+  await Bun.write(CONFIG_PATH, JSON.stringify(config, null, 2));
+}
+
+function printUsage(): void {
+  console.log(`
+使い方:
+  bun run cli add <username>              配信者を追加
+  bun run cli remove <username>           配信者を削除
+  bun run cli list                        配信者一覧を表示
+  bun run cli webhook add <username>      Webhookを追加
+  bun run cli webhook remove <username>   Webhookを削除
+`);
+}
+
+function promptInput(message: string): Promise<string> {
+  return new Promise((resolve) => {
+    rl.question(message, (answer: string) => {
+      resolve(answer.trim());
+    });
+  });
+}
+
+function validateWebhookUrl(url: string): boolean {
+  return url.startsWith("https://discord.com/api/webhooks/");
+}
+
+async function addStreamer(username: string): Promise<void> {
+  const config = await loadConfig();
+
+  const existing = config.streamers.find(
+    (s) => s.username.toLowerCase() === username.toLowerCase()
+  );
+  if (existing) {
+    console.error(`エラー: ${username} は既に登録されています`);
+    process.exit(1);
+  }
+
+  const webhookUrl = await promptInput("Webhook URL: ");
+  if (!validateWebhookUrl(webhookUrl)) {
+    console.error("エラー: 無効なWebhook URLです");
+    process.exit(1);
+  }
+
+  const newStreamer: StreamerConfig = {
+    username,
+    notifications: {
+      online: true,
+      offline: true,
+      titleChange: true,
+      gameChange: true,
+    },
+    webhooks: [webhookUrl],
+  };
+
+  config.streamers.push(newStreamer);
+  await saveConfig(config);
+  console.log(`${username} を追加しました`);
+}
+
+async function removeStreamer(username: string): Promise<void> {
+  const config = await loadConfig();
+
+  const index = config.streamers.findIndex(
+    (s) => s.username.toLowerCase() === username.toLowerCase()
+  );
+  if (index === -1) {
+    console.error(`エラー: ${username} は登録されていません`);
+    process.exit(1);
+  }
+
+  config.streamers.splice(index, 1);
+  await saveConfig(config);
+  console.log(`${username} を削除しました`);
+}
+
+async function listStreamers(): Promise<void> {
+  const config = await loadConfig();
+
+  if (config.streamers.length === 0) {
+    console.log("登録されている配信者はいません");
+    return;
+  }
+
+  console.log("登録済み配信者:");
+  for (const streamer of config.streamers) {
+    console.log(`  - ${streamer.username} (Webhook: ${streamer.webhooks.length}件)`);
+  }
+}
+
+async function addWebhook(username: string): Promise<void> {
+  const config = await loadConfig();
+
+  const streamer = config.streamers.find(
+    (s) => s.username.toLowerCase() === username.toLowerCase()
+  );
+  if (!streamer) {
+    console.error(`エラー: ${username} は登録されていません`);
+    process.exit(1);
+  }
+
+  const webhookUrl = await promptInput("Webhook URL: ");
+  if (!validateWebhookUrl(webhookUrl)) {
+    console.error("エラー: 無効なWebhook URLです");
+    process.exit(1);
+  }
+
+  if (streamer.webhooks.includes(webhookUrl)) {
+    console.error("エラー: このWebhookは既に登録されています");
+    process.exit(1);
+  }
+
+  streamer.webhooks.push(webhookUrl);
+  await saveConfig(config);
+  console.log(`${username} にWebhookを追加しました (合計: ${streamer.webhooks.length}件)`);
+}
+
+async function removeWebhook(username: string): Promise<void> {
+  const config = await loadConfig();
+
+  const streamer = config.streamers.find(
+    (s) => s.username.toLowerCase() === username.toLowerCase()
+  );
+  if (!streamer) {
+    console.error(`エラー: ${username} は登録されていません`);
+    process.exit(1);
+  }
+
+  if (streamer.webhooks.length === 0) {
+    console.error("エラー: Webhookが登録されていません");
+    process.exit(1);
+  }
+
+  console.log("登録済みWebhook:");
+  streamer.webhooks.forEach((url, i) => {
+    console.log(`  ${i + 1}. ${url.slice(0, 60)}...`);
+  });
+
+  const input = await promptInput("削除する番号: ");
+  const index = parseInt(input, 10) - 1;
+
+  if (Number.isNaN(index) || index < 0 || index >= streamer.webhooks.length) {
+    console.error("エラー: 無効な番号です");
+    process.exit(1);
+  }
+
+  streamer.webhooks.splice(index, 1);
+  await saveConfig(config);
+  console.log(`Webhookを削除しました (残り: ${streamer.webhooks.length}件)`);
+}
+
+async function interactiveMode(): Promise<void> {
+  console.log("Stream Notifier CLI\n");
+  console.log("1. 配信者を追加");
+  console.log("2. 配信者を削除");
+  console.log("3. 配信者一覧を表示");
+  console.log("4. Webhookを追加");
+  console.log("5. Webhookを削除");
+  console.log("0. 終了\n");
+
+  const choice = await promptInput("選択: ");
+
+  switch (choice) {
+    case "1": {
+      const username = await promptInput("ユーザー名: ");
+      if (!username) {
+        console.error("エラー: ユーザー名を入力してください");
+        process.exit(1);
+      }
+      await addStreamer(username);
+      break;
+    }
+    case "2": {
+      const username = await promptInput("ユーザー名: ");
+      if (!username) {
+        console.error("エラー: ユーザー名を入力してください");
+        process.exit(1);
+      }
+      await removeStreamer(username);
+      break;
+    }
+    case "3":
+      await listStreamers();
+      break;
+    case "4": {
+      const username = await promptInput("ユーザー名: ");
+      if (!username) {
+        console.error("エラー: ユーザー名を入力してください");
+        process.exit(1);
+      }
+      await addWebhook(username);
+      break;
+    }
+    case "5": {
+      const username = await promptInput("ユーザー名: ");
+      if (!username) {
+        console.error("エラー: ユーザー名を入力してください");
+        process.exit(1);
+      }
+      await removeWebhook(username);
+      break;
+    }
+    case "0":
+      console.log("終了します");
+      break;
+    default:
+      console.error("無効な選択です");
+      process.exit(1);
+  }
+}
+
+async function main(): Promise<void> {
+  const args = process.argv.slice(2);
+
+  if (args.length === 0) {
+    await interactiveMode();
+    process.exit(0);
+  }
+
+  const command = args[0];
+
+  switch (command) {
+    case "add":
+      if (!args[1]) {
+        console.error("エラー: ユーザー名を指定してください");
+        process.exit(1);
+      }
+      await addStreamer(args[1]);
+      break;
+
+    case "remove":
+      if (!args[1]) {
+        console.error("エラー: ユーザー名を指定してください");
+        process.exit(1);
+      }
+      await removeStreamer(args[1]);
+      break;
+
+    case "list":
+      await listStreamers();
+      break;
+
+    case "webhook":
+      if (args[1] === "add") {
+        if (!args[2]) {
+          console.error("エラー: ユーザー名を指定してください");
+          process.exit(1);
+        }
+        await addWebhook(args[2]);
+      } else if (args[1] === "remove") {
+        if (!args[2]) {
+          console.error("エラー: ユーザー名を指定してください");
+          process.exit(1);
+        }
+        await removeWebhook(args[2]);
+      } else {
+        console.error("エラー: webhook add または webhook remove を指定してください");
+        process.exit(1);
+      }
+      break;
+
+    default:
+      console.error(`不明なコマンド: ${command}`);
+      printUsage();
+      process.exit(1);
+  }
+}
+
+main().catch((error) => {
+  console.error("エラー:", error.message);
+  process.exit(1);
+});

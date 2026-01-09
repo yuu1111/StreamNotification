@@ -47,6 +47,26 @@ export class Poller {
     }
   }
 
+  private combineChanges(changes: DetectedChange[]): DetectedChange[] {
+    const titleChange = changes.find((c) => c.type === "titleChange");
+    const gameChange = changes.find((c) => c.type === "gameChange");
+
+    if (titleChange && gameChange) {
+      const combined: DetectedChange = {
+        type: "titleAndGameChange",
+        streamer: titleChange.streamer,
+        oldTitle: titleChange.oldValue,
+        newTitle: titleChange.newValue,
+        oldGame: gameChange.oldValue,
+        newGame: gameChange.newValue,
+        currentState: titleChange.currentState,
+      };
+      return [...changes.filter((c) => c.type !== "titleChange" && c.type !== "gameChange"), combined];
+    }
+
+    return changes;
+  }
+
   private async poll(): Promise<void> {
     try {
       const usernames = this.config.streamers.map((s) => s.username);
@@ -86,9 +106,45 @@ export class Poller {
         };
 
         const oldState = this.stateManager.getState(username);
-        const changes = detectChanges(oldState, newState);
+        const isInitialPoll = !oldState;
 
-        const filteredChanges = changes.filter((c) => streamerConfig.notifications[c.type]);
+        if (isInitialPoll) {
+          const status = newState.isLive
+            ? `配信中 - ${newState.gameName || "ゲーム未設定"}`
+            : "オフライン";
+          logger.info(`[${newState.displayName}] 初期状態: ${status}`);
+        }
+
+        let changes = detectChanges(oldState, newState);
+
+        if (isInitialPoll && newState.isLive) {
+          changes.push({
+            type: "online",
+            streamer: newState.username,
+            currentState: newState,
+          });
+        }
+
+        changes = this.combineChanges(changes);
+
+        for (const change of changes) {
+          if (change.type === "offline") {
+            const vod = await this.api.getLatestVod(user.id);
+            if (vod) {
+              change.vodUrl = vod.url;
+              change.vodThumbnailUrl = vod.thumbnail_url
+                .replace("%{width}", "440")
+                .replace("%{height}", "248");
+            }
+          }
+        }
+
+        const filteredChanges = changes.filter((c) => {
+          if (c.type === "titleAndGameChange") {
+            return streamerConfig.notifications.titleChange || streamerConfig.notifications.gameChange;
+          }
+          return streamerConfig.notifications[c.type];
+        });
 
         if (filteredChanges.length > 0) {
           await this.onChanges(filteredChanges, streamerConfig);

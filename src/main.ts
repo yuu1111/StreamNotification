@@ -23,7 +23,10 @@ async function main() {
       );
 
       const embed = buildEmbed(change);
-      await sendToMultipleWebhooks(streamerConfig.webhooks, embed);
+      await sendToMultipleWebhooks(streamerConfig.webhooks, embed, {
+        displayName: change.currentState.displayName,
+        profileImageUrl: change.currentState.profileImageUrl,
+      });
     }
   });
 

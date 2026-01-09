@@ -7,6 +7,7 @@
   "scripts": {
     "start": "bun run src/main.ts",
     "dev": "bun --watch run src/main.ts",
+    "cli": "bun run src/cli.ts",
     "lint": "biome lint ./src",
     "format": "biome format --write ./src",
     "check": "biome check --write ./src",

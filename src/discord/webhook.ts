@@ -7,9 +7,20 @@ export interface WebhookPayload {
   avatar_url?: string;
 }
 
-export async function sendWebhook(webhookUrl: string, embed: DiscordEmbed): Promise<void> {
+export interface StreamerInfo {
+  displayName: string;
+  profileImageUrl: string;
+}
+
+export async function sendWebhook(
+  webhookUrl: string,
+  embed: DiscordEmbed,
+  streamer: StreamerInfo
+): Promise<void> {
   const payload: WebhookPayload = {
     embeds: [embed],
+    username: streamer.displayName,
+    avatar_url: streamer.profileImageUrl,
   };
 
   const response = await fetch(webhookUrl, {
@@ -28,9 +39,12 @@ export async function sendWebhook(webhookUrl: string, embed: DiscordEmbed): Prom
 
 export async function sendToMultipleWebhooks(
   webhookUrls: string[],
-  embed: DiscordEmbed
+  embed: DiscordEmbed,
+  streamer: StreamerInfo
 ): Promise<void> {
-  const results = await Promise.allSettled(webhookUrls.map((url) => sendWebhook(url, embed)));
+  const results = await Promise.allSettled(
+    webhookUrls.map((url) => sendWebhook(url, embed, streamer))
+  );
 
   for (let i = 0; i < results.length; i++) {
     const result = results[i];

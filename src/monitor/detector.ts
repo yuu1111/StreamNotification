@@ -4,8 +4,15 @@ import type { StreamerState } from "./state";
 export interface DetectedChange {
   type: ChangeType;
   streamer: string;
-  oldValue?: string;
-  newValue?: string;
+  oldValue?: string | undefined;
+  newValue?: string | undefined;
+  oldTitle?: string | undefined;
+  newTitle?: string | undefined;
+  oldGame?: string | undefined;
+  newGame?: string | undefined;
+  streamStartedAt?: string | undefined;
+  vodUrl?: string | undefined;
+  vodThumbnailUrl?: string | undefined;
   currentState: StreamerState;
 }
 
@@ -31,6 +38,7 @@ export function detectChanges(
     changes.push({
       type: "offline",
       streamer: newState.username,
+      streamStartedAt: oldState.startedAt ?? undefined,
       currentState: newState,
     });
   }
