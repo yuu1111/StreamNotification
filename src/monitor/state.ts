@@ -1,15 +1,15 @@
 /**
  * @description 配信者の状態を表すインターフェース
- * @property userId - TwitchユーザーID
- * @property username - ログイン名(小文字)
+ * @property userId - ユーザーID
+ * @property username - ユーザー名(小文字)
  * @property displayName - 表示名
  * @property profileImageUrl - プロフィール画像URL
  * @property isLive - 配信中かどうか
  * @property title - 配信タイトル
  * @property gameId - ゲームID
  * @property gameName - ゲーム名
- * @property startedAt - 配信開始日時(ISO 8601) @optional
- * @property thumbnailUrl - サムネイルURL @optional
+ * @property startedAt - 配信開始日時(配信中の場合) @optional
+ * @property thumbnailUrl - サムネイルURL(配信中の場合) @optional
  * @property viewerCount - 視聴者数
  */
 export interface StreamerState {
@@ -30,9 +30,6 @@ export interface StreamerState {
  * @description 配信者の状態を管理するクラス
  */
 export class StateManager {
-  /**
-   * @description ユーザー名をキーとする状態Map
-   */
   private states = new Map<string, StreamerState>();
 
   /**
@@ -56,7 +53,7 @@ export class StateManager {
   /**
    * @description 指定ユーザーの状態が存在するか確認
    * @param username - ユーザー名
-   * @returns 存在する場合true
+   * @returns 状態が存在する場合true
    */
   hasState(username: string): boolean {
     return this.states.has(username.toLowerCase());

@@ -4,14 +4,14 @@ import type { DetectedChange } from "../monitor/detector";
 /**
  * @description Discord Embed構造
  * @property title - Embedのタイトル
- * @property description - 説明文 @optional
- * @property url - タイトルのリンク先 @optional
- * @property color - サイドバーの色(10進数)
+ * @property description - Embedの説明 @optional
+ * @property url - クリック時に開くURL @optional
+ * @property color - 左側の縦線の色(10進数)
  * @property thumbnail - サムネイル画像 @optional
  * @property image - メイン画像 @optional
- * @property fields - フィールド配列 @optional
- * @property timestamp - ISO 8601形式のタイムスタンプ @optional
- * @property footer - フッター @optional
+ * @property fields - フィールドの配列 @optional
+ * @property timestamp - タイムスタンプ(ISO 8601) @optional
+ * @property footer - フッター情報 @optional
  * @property author - 作成者情報 @optional
  */
 export interface DiscordEmbed {
@@ -190,9 +190,6 @@ export function buildEmbed(change: DetectedChange): DiscordEmbed {
         { name: "変更前", value: change.oldValue || "(なし)", inline: false },
         { name: "変更後", value: change.newValue || "(なし)", inline: false },
       ];
-      if (currentState.isLive) {
-        embed.footer = { text: "配信中" };
-      }
       break;
 
     case "gameChange":
@@ -200,9 +197,6 @@ export function buildEmbed(change: DetectedChange): DiscordEmbed {
         { name: "変更前", value: change.oldValue || "(未設定)", inline: true },
         { name: "変更後", value: change.newValue || "(未設定)", inline: true },
       ];
-      if (currentState.isLive) {
-        embed.footer = { text: "配信中" };
-      }
       break;
 
     case "titleAndGameChange":
@@ -218,10 +212,14 @@ export function buildEmbed(change: DetectedChange): DiscordEmbed {
           inline: false,
         },
       ];
-      if (currentState.isLive) {
-        embed.footer = { text: "配信中" };
-      }
       break;
+  }
+
+  // タイトル/ゲーム変更時は配信中であればfooterを設定
+  const isChangeEvent =
+    type === "titleChange" || type === "gameChange" || type === "titleAndGameChange";
+  if (isChangeEvent && currentState.isLive && !embed.footer) {
+    embed.footer = { text: "配信中" };
   }
 
   return embed;

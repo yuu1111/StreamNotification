@@ -65,10 +65,30 @@ function promptInput(message: string): Promise<string> {
 /**
  * @description Webhook URLの形式を検証
  * @param url - 検証するURL
- * @returns 有効なDiscord Webhook URLの場合true
+ * @returns 有効な形式の場合true
  */
 function validateWebhookUrl(url: string): boolean {
   return url.startsWith("https://discord.com/api/webhooks/");
+}
+
+/**
+ * @description 配信者をユーザー名で検索
+ * @param streamers - 配信者設定の配列
+ * @param username - 検索するユーザー名
+ * @returns 見つかった配信者、または undefined
+ */
+function findStreamer(streamers: StreamerConfig[], username: string): StreamerConfig | undefined {
+  return streamers.find((s) => s.username.toLowerCase() === username.toLowerCase());
+}
+
+/**
+ * @description 配信者のインデックスをユーザー名で検索
+ * @param streamers - 配信者設定の配列
+ * @param username - 検索するユーザー名
+ * @returns 見つかったインデックス、または -1
+ */
+function findStreamerIndex(streamers: StreamerConfig[], username: string): number {
+  return streamers.findIndex((s) => s.username.toLowerCase() === username.toLowerCase());
 }
 
 /**
@@ -78,10 +98,7 @@ function validateWebhookUrl(url: string): boolean {
 async function addStreamer(username: string): Promise<void> {
   const config = await loadConfig();
 
-  const existing = config.streamers.find(
-    (s: StreamerConfig) => s.username.toLowerCase() === username.toLowerCase()
-  );
-  if (existing) {
+  if (findStreamer(config.streamers, username)) {
     console.error(`エラー: ${username} は既に登録されています`);
     process.exit(1);
   }
@@ -115,9 +132,7 @@ async function addStreamer(username: string): Promise<void> {
 async function removeStreamer(username: string): Promise<void> {
   const config = await loadConfig();
 
-  const index = config.streamers.findIndex(
-    (s: StreamerConfig) => s.username.toLowerCase() === username.toLowerCase()
-  );
+  const index = findStreamerIndex(config.streamers, username);
   if (index === -1) {
     console.error(`エラー: ${username} は登録されていません`);
     process.exit(1);
@@ -152,9 +167,7 @@ async function listStreamers(): Promise<void> {
 async function addWebhook(username: string): Promise<void> {
   const config = await loadConfig();
 
-  const streamer = config.streamers.find(
-    (s: StreamerConfig) => s.username.toLowerCase() === username.toLowerCase()
-  );
+  const streamer = findStreamer(config.streamers, username);
   if (!streamer) {
     console.error(`エラー: ${username} は登録されていません`);
     process.exit(1);
@@ -183,9 +196,7 @@ async function addWebhook(username: string): Promise<void> {
 async function removeWebhook(username: string): Promise<void> {
   const config = await loadConfig();
 
-  const streamer = config.streamers.find(
-    (s: StreamerConfig) => s.username.toLowerCase() === username.toLowerCase()
-  );
+  const streamer = findStreamer(config.streamers, username);
   if (!streamer) {
     console.error(`エラー: ${username} は登録されていません`);
     process.exit(1);

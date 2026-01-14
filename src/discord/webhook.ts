@@ -3,9 +3,9 @@ import type { DiscordEmbed } from "./embed";
 
 /**
  * @description Discord Webhookのペイロード
- * @property embeds - Embed配列
- * @property username - Botの表示名 @optional
- * @property avatar_url - Botのアバター画像URL @optional
+ * @property embeds - 送信するEmbedの配列
+ * @property username - Webhook表示名 @optional
+ * @property avatar_url - Webhookアバター画像URL @optional
  */
 export interface WebhookPayload {
   embeds: DiscordEmbed[];
@@ -70,10 +70,9 @@ export async function sendToMultipleWebhooks(
     webhookUrls.map((url) => sendWebhook(url, embed, streamer))
   );
 
-  for (let i = 0; i < results.length; i++) {
-    const result = results[i];
-    if (result && result.status === "rejected") {
-      logger.error(`Webhook送信エラー [${i + 1}/${webhookUrls.length}]:`, result.reason);
+  results.forEach((result, index) => {
+    if (result.status === "rejected") {
+      logger.error(`Webhook送信エラー [${index + 1}/${webhookUrls.length}]:`, result.reason);
     }
-  }
+  });
 }

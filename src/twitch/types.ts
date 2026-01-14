@@ -2,7 +2,7 @@
  * @description Twitch OAuth2トークンレスポンス
  * @property access_token - アクセストークン
  * @property expires_in - 有効期限(秒)
- * @property token_type - トークンタイプ(常に"bearer")
+ * @property token_type - トークンタイプ
  */
 export interface TwitchTokenResponse {
   access_token: string;
@@ -35,7 +35,7 @@ export interface TwitchUser {
  * @property title - 配信タイトル
  * @property viewer_count - 視聴者数
  * @property started_at - 配信開始日時(ISO 8601)
- * @property thumbnail_url - サムネイルURL(プレースホルダー付き)
+ * @property thumbnail_url - サムネイルURL
  */
 export interface TwitchStream {
   id: string;
@@ -52,7 +52,7 @@ export interface TwitchStream {
 
 /**
  * @description チャンネル情報(Channels API)
- * @property broadcaster_id - 配信者のユーザーID
+ * @property broadcaster_id - 配信者ID
  * @property broadcaster_login - 配信者のログイン名
  * @property broadcaster_name - 配信者の表示名
  * @property game_id - ゲームID
@@ -76,8 +76,8 @@ export interface TwitchChannel {
  * @property title - 動画タイトル
  * @property url - 動画URL
  * @property created_at - 作成日時(ISO 8601)
- * @property duration - 再生時間(例: "3h2m1s")
- * @property thumbnail_url - サムネイルURL(プレースホルダー付き)
+ * @property duration - 再生時間
+ * @property thumbnail_url - サムネイルURL
  */
 export interface TwitchVideo {
   id: string;

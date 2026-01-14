@@ -3,17 +3,17 @@ import type { StreamerState } from "./state";
 
 /**
  * @description 検出された変更イベント
- * @property type - 変更種別
- * @property streamer - 配信者ユーザー名
- * @property oldValue - 変更前の値(titleChange/gameChange用) @optional
- * @property newValue - 変更後の値(titleChange/gameChange用) @optional
- * @property oldTitle - 変更前タイトル(titleAndGameChange用) @optional
- * @property newTitle - 変更後タイトル(titleAndGameChange用) @optional
- * @property oldGame - 変更前ゲーム(titleAndGameChange用) @optional
- * @property newGame - 変更後ゲーム(titleAndGameChange用) @optional
- * @property streamStartedAt - 配信開始日時(offline用) @optional
- * @property vodUrl - VODのURL(offline用) @optional
- * @property vodThumbnailUrl - VODのサムネイルURL(offline用) @optional
+ * @property type - 変更の種類
+ * @property streamer - 配信者のユーザー名
+ * @property oldValue - 変更前の値 @optional
+ * @property newValue - 変更後の値 @optional
+ * @property oldTitle - 変更前のタイトル @optional
+ * @property newTitle - 変更後のタイトル @optional
+ * @property oldGame - 変更前のゲーム @optional
+ * @property newGame - 変更後のゲーム @optional
+ * @property streamStartedAt - 配信開始日時 @optional
+ * @property vodUrl - VOD URL @optional
+ * @property vodThumbnailUrl - VODサムネイルURL @optional
  * @property currentState - 現在の配信者状態
  */
 export interface DetectedChange {

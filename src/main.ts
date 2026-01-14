@@ -35,15 +35,15 @@ export async function startMonitor(): Promise<void> {
 
   await poller.start();
 
-  process.on("SIGINT", () => {
+  /**
+   * @description シャットダウン処理を実行
+   */
+  const shutdown = (): void => {
     logger.info("シャットダウン中...");
     poller.stop();
     process.exit(0);
-  });
+  };
 
-  process.on("SIGTERM", () => {
-    logger.info("シャットダウン中...");
-    poller.stop();
-    process.exit(0);
-  });
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 }
