@@ -2,55 +2,59 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## プロジェクト概要
-
-Twitch配信者の状態変更(配信開始/終了/タイトル変更/ゲーム変更)を検出し、Discord Webhookに通知するBunアプリケーション。
-
-## 開発コマンド
+## Commands
 
 ```bash
-bun install          # 依存関係インストール
-bun run start        # アプリ実行
-bun run dev          # ウォッチモードで実行
-bun run lint         # Biome lint
-bun run format       # Biome format
-bun run check        # lint + format (自動修正)
-bun run typecheck    # TypeScript型チェック
+# 開発
+bun install            # 依存関係インストール
+bun run start          # 監視開始
+bun run dev            # ホットリロード付き開発
+
+# 品質チェック
+bun run lint           # Biomeでlint
+bun run check          # Biomeでlint + format修正
+bun run typecheck      # TypeScript型チェック
+
+# ビルド
+bun run build          # 現在プラットフォーム用にビルド
+bun run build:win      # Windows用
+bun run build:linux    # Linux用
+bun run build:mac      # macOS用
+bun run build:all      # 全プラットフォーム
 ```
 
-## アーキテクチャ
+## Architecture
+
+Twitch配信者の状態変化をポーリングし、Discord Webhookで通知するCLIアプリ。
 
 ```
 src/
-├── main.ts              # エントリーポイント、シグナルハンドリング
-├── config/              # 設定読み込み・バリデーション
-├── twitch/              # Twitch Helix API連携
-│   ├── auth.ts          # Client Credentials認証(トークン自動更新)
-│   ├── api.ts           # streams/channels/users API
-│   └── types.ts         # APIレスポンス型
-├── monitor/             # 監視ロジック
-│   ├── poller.ts        # ポーリング制御、変更検出のオーケストレーション
-│   ├── state.ts         # 配信者状態管理(Map)
-│   └── detector.ts      # 新旧状態比較、変更検出
-├── discord/             # Discord通知
-│   ├── webhook.ts       # Webhook送信(並列送信対応)
-│   └── embed.ts         # 通知タイプ別Embed構築
+├── main.ts           # エントリーポイント (監視 or CLI)
+├── cli.ts            # 設定管理CLI (add/remove/list/webhook)
+├── config/
+│   ├── schema.ts     # Zodスキーマ定義 (設定・型)
+│   └── loader.ts     # config.json読み込み
+├── twitch/
+│   ├── auth.ts       # OAuth2クライアント認証
+│   ├── api.ts        # Helix API呼び出し
+│   └── types.ts      # APIレスポンス型
+├── monitor/
+│   ├── poller.ts     # 定期ポーリング実行
+│   ├── detector.ts   # 状態変化検出ロジック
+│   └── state.ts      # 配信者状態管理
+├── discord/
+│   ├── webhook.ts    # Webhook送信
+│   └── embed.ts      # Embed構築
 └── utils/
-    └── logger.ts        # レベル別ログ出力
+    └── logger.ts     # ログ出力
 ```
 
-## 処理フロー
+**データフロー**: `Poller` → `TwitchAPI` → `detectChanges` → `buildEmbed` → `sendToWebhook`
 
-1. `Poller` が一定間隔で Twitch API をポーリング
-2. `StateManager` が各配信者の前回状態を保持
-3. `detectChanges()` が新旧状態を比較し変更を検出
-4. 変更があれば `buildEmbed()` で通知内容を構築
-5. `sendToMultipleWebhooks()` で複数Webhookに並列送信
+## Key Points
 
-## パスエイリアス
-
-`@/*` → `src/*` (tsconfig.jsonで設定)
-
-## 設定
-
-`config.example.json` を `config.json` にコピーして使用。Twitch Developer Consoleで Client ID/Secret を取得する必要あり。
+- ランタイム: Bun
+- 設定バリデーション: Zod (`config/schema.ts`)
+- パスエイリアス: `@/*` → `src/*`
+- 通知タイプ: online / offline / titleChange / gameChange / titleAndGameChange
+- 設定ファイル: `config.json` (テンプレート: `config.example.json`)
