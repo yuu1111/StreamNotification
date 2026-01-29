@@ -1,6 +1,8 @@
 import type { LogLevel } from "../config/schema";
 
-/** ログレベルの優先度 */
+/**
+ * @description ログレベルの優先度マッピング
+ */
 const LOG_LEVELS: Record<LogLevel, number> = {
   debug: 0,
   info: 1,
@@ -9,13 +11,13 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 };
 
 /**
- * レベル別ログ出力を行うロガー
+ * @description レベル別ログ出力を行うロガー
  */
 class Logger {
   private level: LogLevel = "info";
 
   /**
-   * ログ出力レベルを設定する
+   * @description ログ出力レベルを設定する
    * @param level - 設定するログレベル
    */
   setLevel(level: LogLevel): void {
@@ -23,7 +25,7 @@ class Logger {
   }
 
   /**
-   * 指定レベルのログを出力すべきか判定する
+   * @description 指定レベルのログを出力すべきか判定する
    * @param level - 判定するログレベル
    * @returns 出力すべき場合true
    */
@@ -32,7 +34,7 @@ class Logger {
   }
 
   /**
-   * ログメッセージをフォーマットする
+   * @description ログメッセージをフォーマットする
    * @param level - ログレベル
    * @param message - メッセージ
    * @returns フォーマット済みメッセージ
@@ -43,7 +45,7 @@ class Logger {
   }
 
   /**
-   * デバッグログを出力する
+   * @description デバッグログを出力する
    * @param message - メッセージ
    * @param args - 追加の引数
    */
@@ -54,7 +56,7 @@ class Logger {
   }
 
   /**
-   * 情報ログを出力する
+   * @description 情報ログを出力する
    * @param message - メッセージ
    * @param args - 追加の引数
    */
@@ -65,7 +67,7 @@ class Logger {
   }
 
   /**
-   * 警告ログを出力する
+   * @description 警告ログを出力する
    * @param message - メッセージ
    * @param args - 追加の引数
    */
@@ -76,7 +78,7 @@ class Logger {
   }
 
   /**
-   * エラーログを出力する
+   * @description エラーログを出力する
    * @param message - メッセージ
    * @param args - 追加の引数
    */
@@ -87,5 +89,7 @@ class Logger {
   }
 }
 
-/** グローバルロガーインスタンス */
+/**
+ * @description グローバルロガーインスタンス
+ */
 export const logger = new Logger();

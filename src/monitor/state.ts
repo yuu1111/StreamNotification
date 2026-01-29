@@ -30,6 +30,9 @@ export interface StreamerState {
  * @description 配信者の状態を管理するクラス
  */
 export class StateManager {
+  /**
+   * @description 配信者ごとの状態を保持するMap
+   */
   private states = new Map<string, StreamerState>();
 
   /**
