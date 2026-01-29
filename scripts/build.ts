@@ -30,7 +30,7 @@ async function build(platform: Platform): Promise<void> {
 
   await mkdir(outDir, { recursive: true });
 
-  await $`bun build --compile --target=${target} src/index.ts --outfile ${outDir}/${outputName}`;
+  await $`bun build --compile --target=${target} src/main.ts --outfile ${outDir}/${outputName}`;
 
   // config.example.jsonをコピー
   await cp("config.example.json", `${outDir}/config.example.json`);

@@ -31,7 +31,7 @@ jobs:
       - run: bun install
 
       - name: Build
-        run: bun build --compile --target=${{ matrix.target }} src/index.ts --outfile ${{ matrix.name }}
+        run: bun build --compile --target=${{ matrix.target }} src/main.ts --outfile ${{ matrix.name }}
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
