@@ -13,8 +13,8 @@
     "build:mac": "bun run scripts/build.ts mac",
     "build:all": "bun run scripts/build.ts all",
     "lint": "biome lint ./src",
-    "format": "biome format --write ./src",
     "check": "biome check --write ./src",
+    "check:unsafe": "biome check --write --unsafe ./src",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
